@@ -1,0 +1,107 @@
+🧱 1. Schema define kiya (structure of user)
+const userSchema = new mongoose.Schema({ ... })
+
+👉 Isme tune decide kiya ki DB me user ka data kaise store hoga.
+
+📌 Fields:
+✅ email
+required → bina email ke user create nahi hoga
+trim → extra spaces hata dega
+lowercase → sab small letters me store hoga
+match → regex se validate kiya (valid email hi accept hoga)
+unique → same email dobara nahi aa sakta
+
+👉 Matlab: clean + valid + unique email enforced
+
+✅ name
+required hai → user ka naam compulsory
+✅ password
+required → password zaroori hai
+minlength: 6 → weak password reject
+select: false ⚡ (important)
+
+👉 Iska matlab:
+
+User.find()
+
+me password by default return hi nahi hoga
+
+➡️ Security ke liye best practice 👍
+
+⏱ timestamps
+{ timestamps: true }
+
+👉 Automatically:
+
+createdAt
+updatedAt
+
+add ho jayenge
+
+🔐 2. Pre-save middleware (password hashing)
+userSchema.pre("save", async function(next) { ... })
+
+👉 Ye tab run hota hai jab:
+
+new User().save()
+ya user.save()
+🔍 Logic:
+if(!this.isModified("password")){
+    return next()
+}
+
+👉 Check:
+
+Agar password change nahi hua → skip hashing
+warna → dobara hash karega
+🔒 Hashing:
+const hash = await bcrypt.hash(this.password, 10)
+this.password = hash
+
+👉 Plain password → hashed password me convert
+
+➡️ DB me kabhi bhi plain password store nahi hota 🚀
+
+⚔️ 3. Custom method (password compare)
+userSchema.methods.comparePassword = async function(password) {
+    return await bcrypt.compare(password, this.password)
+}
+
+👉 Tune ek instance method banaya
+
+💡 Kaam:
+user jo login me password daalta hai → password
+DB ka password → this.password
+
+👉 bcrypt check karega match hai ya nahi
+
+📌 Important:
+this = current user document
+Arrow function use nahi kiya → sahi kiya ✅
+🧠 4. Model create kiya
+const userModel = mongoose.model("user", userSchema)
+
+👉 Ab tu:
+
+create
+read
+update
+delete
+
+kar sakta hai users pe
+
+📦 5. Export kiya
+module.exports = userModel
+
+👉 Taaki dusre files me use kar sake
+
+🔥 Overall tune kya build kiya?
+
+👉 Ek secure authentication-ready user system jisme:
+
+✔ Email validation
+✔ Unique users
+✔ Password hashing
+✔ Password hidden by default
+✔ Password comparison method
+✔ Auto timestamps
